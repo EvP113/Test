@@ -12,82 +12,84 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
             background: rgba(255, 255, 255, 0.95);
-            padding: 40px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 1200px;
+            max-width: 1400px;
             width: 100%;
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
             text-transform: uppercase;
             letter-spacing: 2px;
+            flex-shrink: 0;
         }
 
         .photo-container {
             position: relative;
-            width: 100%;
             max-width: 100%;
+            flex: 0 0 auto;
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            margin: 0 auto 15px auto;
+            display: inline-block;
             background: #f0f0f0;
-            min-height: 400px;
+            line-height: 0;
         }
 
         .photo {
             max-width: 100%;
-            max-height: 80vh;
+            max-height: calc(95vh - 200px);
             width: auto;
             height: auto;
-            object-fit: contain;
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease;
             display: block;
+            transition: opacity 0.5s ease-in-out;
         }
 
         .photo.fade-out {
             opacity: 0;
-            transform: scale(0.95);
         }
 
         .photo.fade-in {
             opacity: 1;
-            transform: scale(1);
         }
 
         .button-container {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
+            flex-shrink: 0;
+            margin-bottom: 10px;
         }
 
         .nav-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
             color: white;
             border: none;
-            padding: 15px 35px;
-            font-size: 1.1rem;
+            padding: 12px 30px;
+            font-size: 1rem;
             font-weight: 700;
             border-radius: 50px;
             cursor: pointer;
@@ -97,52 +99,137 @@
             letter-spacing: 1px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            min-width: 120px;
+            justify-content: center;
         }
 
-        .nav-btn:hover {
+        .nav-btn:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
         }
 
-        .nav-btn:active {
+        .nav-btn:active:not(:disabled) {
             transform: translateY(-1px);
         }
 
         .nav-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
         .nav-btn svg {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             fill: white;
         }
 
         .photo-counter {
-            margin-top: 20px;
             color: #666;
             font-size: 1rem;
+            flex-shrink: 0;
         }
 
+        .loading {
+            color: #999;
+            font-size: 1.2rem;
+        }
+
+        /* Мобильные устройства */
         @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+
             .container {
-                padding: 20px;
+                padding: 12px;
+                max-height: 98vh;
+                border-radius: 15px;
             }
 
             h1 {
-                font-size: 1.8rem;
+                font-size: 1.3rem;
+                margin-bottom: 10px;
+            }
+
+            .photo-container {
+                margin-bottom: 10px;
+                border-radius: 10px;
             }
 
             .photo {
-                max-height: 60vh;
+                max-height: calc(98vh - 150px);
+            }
+
+            .button-container {
+                gap: 10px;
+                margin-bottom: 8px;
             }
 
             .nav-btn {
-                padding: 12px 25px;
-                font-size: 0.95rem;
+                padding: 10px 20px;
+                font-size: 0.9rem;
+                min-width: 100px;
+            }
+
+            .nav-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            .photo-counter {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Очень маленькие экраны */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+            }
+
+            .photo {
+                max-height: calc(98vh - 130px);
+            }
+
+            .nav-btn {
+                padding: 8px 15px;
+                font-size: 0.85rem;
+                min-width: 90px;
+            }
+
+            .photo-counter {
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Альбомная ориентация на мобильных */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                padding: 8px;
+                max-height: 95vh;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+                margin-bottom: 5px;
+            }
+
+            .photo-container {
+                margin-bottom: 5px;
+            }
+
+            .photo {
+                max-height: calc(95vh - 100px);
+            }
+
+            .button-container {
+                margin-bottom: 3px;
             }
         }
     </style>
@@ -177,20 +264,34 @@
 
     <script>
         // ========================================
-        // ДОБАВЬТЕ СЮДА СВОИ ФОТОГРАФИИ!
+        // НАСТРОЙКА: Укажите папку с фотографиями
         // ========================================
-        // Просто укажите путь к вашим изображениям
-        // Например: 'images/photo1.jpg', 'images/photo2.jpg'
+        const PHOTO_FOLDER = 'images/';
         
+        // ВАРИАНТ 1: Автоматическое определение (если файлы названы по порядку)
+        // Укажите общее количество фотографий
+        const TOTAL_PHOTOS = 2; // Измените на ваше количество
+        
+        // Автоматически создаём массив: photo1.jpg, photo2.jpg, photo3.jpg...
+        const photos = Array.from({ length: TOTAL_PHOTOS }, (_, i) => 
+            `${PHOTO_FOLDER}photo${i + 1}.jpg`
+        );
+
+        // ВАРИАНТ 2: Ручной список (раскомментируйте, если хотите указать вручную)
+        /*
         const photos = [
-            'images/photo1.jpg',
-            'images/photo2.jpg',
-            // Добавьте больше фотографий здесь...
+            'images/фото1.jpg',
+            'images/фото2.png',
+            'images/моя_картинка.jpg',
+            'images/отпуск.jpeg',
+            // Добавьте сколько угодно...
         ];
+        */
 
         // ========================================
         
         let currentPhoto = 0;
+        let isTransitioning = false; // Флаг для предотвращения множественных нажатий
         const photo = document.getElementById('photo');
         const counter = document.getElementById('counter');
         const total = document.getElementById('total');
@@ -202,46 +303,78 @@
             total.textContent = photos.length;
             if (photos.length > 0) {
                 loadPhoto(0);
+            } else {
+                photo.alt = 'Нет фотографий';
+                updateButtons();
             }
-            updateButtons();
         }
 
         function loadPhoto(index) {
+            // Проверка границ
+            if (index < 0 || index >= photos.length) {
+                console.error('Неверный индекс фото:', index);
+                return;
+            }
+
             photo.src = photos[index];
             counter.textContent = index + 1;
             currentPhoto = index;
         }
 
         function nextPhoto() {
-            if (currentPhoto < photos.length - 1) {
-                photo.classList.remove('fade-in');
-                photo.classList.add('fade-out');
-
-                setTimeout(() => {
-                    currentPhoto++;
-                    loadPhoto(currentPhoto);
-                    
-                    photo.classList.remove('fade-out');
-                    photo.classList.add('fade-in');
-                    updateButtons();
-                }, 250);
+            // Проверка: не идёт ли уже переход и не достигнут ли конец
+            if (isTransitioning || currentPhoto >= photos.length - 1) {
+                return;
             }
+
+            isTransitioning = true;
+            photo.classList.remove('fade-in');
+            photo.classList.add('fade-out');
+
+            setTimeout(() => {
+                currentPhoto++;
+                
+                // Дополнительная проверка границ
+                if (currentPhoto >= photos.length) {
+                    currentPhoto = photos.length - 1;
+                }
+                
+                loadPhoto(currentPhoto);
+                
+                photo.classList.remove('fade-out');
+                photo.classList.add('fade-in');
+                updateButtons();
+                
+                isTransitioning = false;
+            }, 250);
         }
 
         function prevPhoto() {
-            if (currentPhoto > 0) {
-                photo.classList.remove('fade-in');
-                photo.classList.add('fade-out');
-
-                setTimeout(() => {
-                    currentPhoto--;
-                    loadPhoto(currentPhoto);
-
-                    photo.classList.remove('fade-out');
-                    photo.classList.add('fade-in');
-                    updateButtons();
-                }, 250);
+            // Проверка: не идёт ли уже переход и не достигнут ли начало
+            if (isTransitioning || currentPhoto <= 0) {
+                return;
             }
+
+            isTransitioning = true;
+            photo.classList.remove('fade-in');
+            photo.classList.add('fade-out');
+
+            setTimeout(() => {
+                currentPhoto--;
+                
+                // Дополнительная проверка границ
+                if (currentPhoto < 0) {
+                    currentPhoto = 0;
+                }
+
+                loadPhoto(currentPhoto);
+
+                photo.classList.remove('fade-out');
+                photo.classList.add('fade-in');
+                updateButtons();
+                
+                isTransitioning = false;
+            }, 250);
         }
 
         function updateButtons() {
