@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4b61c4">
+    <title>Артур Кликер - Империя (Сбалансированная версия)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Убираем всплывающие подсказки браузера */
+        img {
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-drag: none;
+        }
+
+        button, a {
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+
+        /* Верхняя панель со статистикой */
+        .stats-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .main-balance {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .balance-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(75, 97, 196, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4b61c4;
+        }
+
+        /* Прогресс-бар опыта */
+        .exp-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(75, 97, 196, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .exp-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4b61c4 0%, #00c3ff 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        /* Кликер */
+        .clicker-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Фото персонажа */
+        .character-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(75, 97, 196, 0.4);
+            position: relative;
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+        }
+
+        .character-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-touch-callout: none;
+        }
+
+        /* Отключаем контекстное меню */
+        .character-photo {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .character-photo img {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .character-level-badge {
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            box-shadow: 0 3px 10px rgba(245, 87, 108, 0.5);
+            z-index: 10;
+        }
+
+        .click-button {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+            color: white;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 10px 30px rgba(75, 97, 196, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .click-button:active {
+            transform: scale(0.95);
+        }
+
+        .click-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .click-button:active::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .click-value {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        .floating-coin {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #4b61c4;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px);
+            }
+        }
+
+        /* Нижняя навигация */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            max-width: 100px;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+            border-radius: 0 0 3px 3px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-item.active::before {
+            opacity: 1;
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #4b61c4;
+            transform: scale(1.1);
+        }
+
+        .nav-label {
+            font-size: 0.65rem;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item.active .nav-label {
+            color: #4b61c4;
+        }
+
+        /* Секции улучшений */
+        .upgrades-section {
+            display: none;
+            padding-bottom: 80px;
+        }
+
+        .upgrades-section.active {
+            display: block;
+        }
+
+        .upgrade-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .upgrade-icon {
+            font-size: 2.5rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .upgrade-info {
+            flex: 1;
+        }
+
+        .upgrade-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .upgrade-desc {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .upgrade-level {
+            color: #4b61c4;
+            font-weight: 600;
+        }
+
+        .upgrade-power {
+            color: #00c3ff;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(75, 97, 196, 0.3);
+        }
+
+        .upgrade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(75, 97, 196, 0.4);
+        }
+
+        .upgrade-btn:active {
+            transform: translateY(0);
+        }
+
+        .upgrade-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .upgrade-cost {
+            font-size: 0.9rem;
+        }
+
+        /* Достижения */
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .achievement-card.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        .achievement-icon {
+            font-size: 2.5rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .achievement-desc {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .achievement-reward {
+            color: #4b61c4;
+            font-weight: 700;
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        #mainSection {
+            padding-bottom: 80px;
+        }
+
+        @media (max-width: 600px) {
+            .balance-amount {
+                font-size: 2rem;
+            }
+
+            .character-photo {
+                width: 150px;
+                height: 150px;
+            }
+
+            .click-button {
+                width: 150px;
+                height: 150px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Верхняя панель статистики -->
+        <div class="stats-panel">
+            <div class="main-balance">
+                <div class="balance-label">Баланс</div>
+                <div class="balance-amount" id="balance">0</div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">За клик</div>
+                    <div class="stat-value" id="clickPower">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">В секунду</div>
+                    <div class="stat-value" id="passiveIncome">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Уровень</div>
+                    <div class="stat-value" id="playerLevel">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">До уровня <span id="nextLevel">2</span></div>
+                    <div class="stat-value" id="expToNext">3</div>
+                    <div class="exp-bar-container">
+                        <div class="exp-bar" id="expBar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основная секция -->
+        <div id="mainSection" class="upgrades-section active">
+            <div class="clicker-section">
+                <!-- Фото персонажа -->
+                <div class="character-photo">
+                    <img id="characterImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%234b61c4'/%3E%3Ctext x='100' y='100' font-size='60' text-anchor='middle' dy='.3em' fill='white'%3E👤%3C/text%3E%3C/svg%3E" alt="Персонаж">
+                    <div class="character-level-badge" id="levelBadge">Ур. 1</div>
+                </div>
+                
+                <button class="click-button" id="clickBtn">💰</button>
+                <div class="click-value">+<span id="clickValue">1</span> за клик</div>
+            </div>
+        </div>
+
+        <!-- Улучшения кликов -->
+        <div id="clickUpgrades" class="upgrades-section">
+            <div class="upgrade-card">
+                <div class="upgrade-icon">👆</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Крепкий палец</div>
+                    <div class="upgrade-desc">+1 за клик</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="finger-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('finger')">
+                    <span id="finger-cost">50</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">✋</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Быстрая рука</div>
+                    <div class="upgrade-desc">+3 за клик</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="hand-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('hand')">
+                    <span id="hand-cost">400</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">💪</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Сильная рука</div>
+                    <div class="upgrade-desc">+8 за клик</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="arm-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('arm')">
+                    <span id="arm-cost">2500</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🤖</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Киборг-рука</div>
+                    <div class="upgrade-desc">+20 за клик</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="cyborg-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('cyborg')">
+                    <span id="cyborg-cost">15000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">⚡</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Молния</div>
+                    <div class="upgrade-desc">+50 за клик</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="lightning-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('lightning')">
+                    <span id="lightning-cost">100000</span> 💰
+                </button>
+            </div>
+        </div>
+
+        <!-- Пассивный доход -->
+        <div id="passiveUpgrades" class="upgrades-section">
+            <div class="upgrade-card">
+                <div class="upgrade-icon">👨‍💼</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Стажёр</div>
+                    <div class="upgrade-desc">+0.5/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="intern-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('intern')">
+                    <span id="intern-cost">200</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">👔</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Менеджер</div>
+                    <div class="upgrade-desc">+2/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="manager-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('manager')">
+                    <span id="manager-cost">1500</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🏢</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Офис</div>
+                    <div class="upgrade-desc">+6/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="office-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('office')">
+                    <span id="office-cost">10000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🏭</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Фабрика</div>
+                    <div class="upgrade-desc">+15/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="factory-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('factory')">
+                    <span id="factory-cost">60000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🏙️</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Корпорация</div>
+                    <div class="upgrade-desc">+40/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="corporation-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('corporation')">
+                    <span id="corporation-cost">350000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">👑</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Империя</div>
+                    <div class="upgrade-desc">+100/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="empire-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('empire')">
+                    <span id="empire-cost">2000000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🌌</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Галактика</div>
+                    <div class="upgrade-desc">+250/сек</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="galaxy-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('galaxy')">
+                    <span id="galaxy-cost">15000000</span> 💰
+                </button>
+            </div>
+        </div>
+
+        <!-- Особые улучшения -->
+        <div id="specialUpgrades" class="upgrades-section">
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🎯</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Точность</div>
+                    <div class="upgrade-desc">+15% к силе клика за уровень</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="precision-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('precision')">
+                    <span id="precision-cost">30000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">⚡</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Скорость</div>
+                    <div class="upgrade-desc">+20% к пассивному доходу за уровень</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="speed-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('speed')">
+                    <span id="speed-cost">60000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">✨</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Магия</div>
+                    <div class="upgrade-desc">5% шанс удвоить клик за уровень (макс 25%)</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="magic-level">0</span>/5</span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('magic')">
+                    <span id="magic-cost">150000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">🌟</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Золотое касание</div>
+                    <div class="upgrade-desc">+30% ко всему за уровень</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="golden-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('golden')">
+                    <span id="golden-cost">800000</span> 💰
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-icon">💎</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">Королевская власть</div>
+                    <div class="upgrade-desc">+50% ко всему за уровень</div>
+                    <div class="upgrade-stats">
+                        <span class="upgrade-level">Уровень: <span id="royal-level">0</span></span>
+                    </div>
+                </div>
+                <button class="upgrade-btn" onclick="buyUpgrade('royal')">
+                    <span id="royal-cost">5000000</span> 💰
+                </button>
+            </div>
+        </div>
+
+        <!-- Достижения -->
+        <div id="achievements" class="upgrades-section">
+            <div class="achievement-card locked" id="ach-clicks-100">
+                <div class="achievement-icon">👆</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Начинающий кликер</div>
+                    <div class="achievement-desc">Сделай 100 кликов</div>
+                    <div class="achievement-reward">Награда: 10 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-clicks-1000">
+                <div class="achievement-icon">🖱️</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Опытный кликер</div>
+                    <div class="achievement-desc">Сделай 1000 кликов</div>
+                    <div class="achievement-reward">Награда: 50 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-balance-1000">
+                <div class="achievement-icon">💰</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Первая тысяча</div>
+                    <div class="achievement-desc">Накопи 1000 монет</div>
+                    <div class="achievement-reward">Награда: 30 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-balance-10000">
+                <div class="achievement-icon">💵</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Богач</div>
+                    <div class="achievement-desc">Накопи 10000 монет</div>
+                    <div class="achievement-reward">Награда: 200 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-first-upgrade">
+                <div class="achievement-icon">⬆️</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Первое улучшение</div>
+                    <div class="achievement-desc">Купи любое улучшение</div>
+                    <div class="achievement-reward">Награда: 5 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-passive-income">
+                <div class="achievement-icon">📈</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Пассивный доход</div>
+                    <div class="achievement-desc">Достигни 100/сек</div>
+                    <div class="achievement-reward">Награда: 1000 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-millionaire">
+                <div class="achievement-icon">🎩</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Миллионер</div>
+                    <div class="achievement-desc">Накопи 1000000 монет</div>
+                    <div class="achievement-reward">Награда: 10000 💰</div>
+                </div>
+            </div>
+
+            <div class="achievement-card locked" id="ach-master">
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-info">
+                    <div class="achievement-name">Мастер</div>
+                    <div class="achievement-desc">Купи все улучшения хотя бы 1 раз</div>
+                    <div class="achievement-reward">Награда: 50000 💰</div>
+                </div>
+            </div>
+
+            <button class="reset-btn" onclick="resetGame()">Сбросить прогресс</button>
+        </div>
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('main')">
+            <div class="nav-icon">🎮</div>
+            <div class="nav-label">Игра</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('click')">
+            <div class="nav-icon">👆</div>
+            <div class="nav-label">Клики</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('passive')">
+            <div class="nav-icon">💼</div>
+            <div class="nav-label">Бизнес</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('special')">
+            <div class="nav-icon">✨</div>
+            <div class="nav-label">Особые</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('achievements')">
+            <div class="nav-icon">🏆</div>
+            <div class="nav-label">Награды</div>
+        </button>
+    </div>
+
+    <script>
+        // ============================================
+        // СБАЛАНСИРОВАННАЯ ВЕРСИЯ ИГРЫ
+        // ============================================
+        
+        let gameState = {
+            balance: 0,
+            clickPower: 1,
+            totalClicks: 0,
+            playerLevel: 1,
+            lastLevel: 1, // Для отслеживания изменения уровня
+            
+            upgrades: {
+                // УЛУЧШЕНИЯ КЛИКОВ - ЖЁСТКО ПЕРЕСБАЛАНСИРОВАНО
+                finger: { level: 0, power: 1, baseCost: 50 },
+                hand: { level: 0, power: 3, baseCost: 400 },
+                arm: { level: 0, power: 8, baseCost: 2500 },
+                cyborg: { level: 0, power: 20, baseCost: 15000 },
+                lightning: { level: 0, power: 50, baseCost: 100000 },
+                
+                // ПАССИВНЫЙ ДОХОД - ЖЁСТКО ПЕРЕСБАЛАНСИРОВАНО
+                intern: { level: 0, income: 0.5, baseCost: 200 },
+                manager: { level: 0, income: 2, baseCost: 1500 },
+                office: { level: 0, income: 6, baseCost: 10000 },
+                factory: { level: 0, income: 15, baseCost: 60000 },
+                corporation: { level: 0, income: 40, baseCost: 350000 },
+                empire: { level: 0, income: 100, baseCost: 2000000 },
+                galaxy: { level: 0, income: 250, baseCost: 15000000 },
+                
+                // МНОЖИТЕЛИ - ЖЁСТКО ПЕРЕСБАЛАНСИРОВАНО
+                precision: { level: 0, baseCost: 30000 }, // +15% за уровень вместо x2
+                speed: { level: 0, baseCost: 60000 }, // +20% за уровень вместо x2
+                magic: { level: 0, baseCost: 150000, maxLevel: 5 }, // 5% шанс удвоить, макс 5 уровней
+                golden: { level: 0, baseCost: 800000 }, // +30% вместо x3
+                royal: { level: 0, baseCost: 5000000 } // +50% вместо x5
+            },
+            
+            achievements: {
+                'ach-clicks-100': false,
+                'ach-clicks-1000': false,
+                'ach-balance-1000': false,
+                'ach-balance-10000': false,
+                'ach-first-upgrade': false,
+                'ach-passive-income': false,
+                'ach-millionaire': false,
+                'ach-master': false
+            }
+        };
+
+        // Форматирование чисел
+        function formatNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return Math.floor(num).toString();
+        }
+
+        // Обновление отображения
+        function updateDisplay() {
+            document.getElementById('balance').textContent = formatNumber(gameState.balance);
+            document.getElementById('clickPower').textContent = formatNumber(calculateClickPower());
+            document.getElementById('passiveIncome').textContent = formatNumber(calculatePassiveIncome());
+            document.getElementById('playerLevel').textContent = gameState.playerLevel;
+            document.getElementById('clickValue').textContent = formatNumber(calculateClickPower());
+            
+            // Обновляем бейдж уровня на фото
+            document.getElementById('levelBadge').textContent = `Ур. ${gameState.playerLevel}`;
+
+            // Обновление уровней улучшений
+            for (let key in gameState.upgrades) {
+                const levelEl = document.getElementById(`${key}-level`);
+                const costEl = document.getElementById(`${key}-cost`);
+                
+                if (levelEl) {
+                    const upgrade = gameState.upgrades[key];
+                    if (upgrade.maxLevel) {
+                        levelEl.textContent = `${upgrade.level}/${upgrade.maxLevel}`;
+                    } else {
+                        levelEl.textContent = upgrade.level;
+                    }
+                }
+                
+                if (costEl) {
+                    costEl.textContent = formatNumber(calculateCost(key));
+                }
+            }
+
+            updateButtons();
+            checkAchievements();
+        }
+
+        // Сохранение
+        function saveGame() {
+            localStorage.setItem('arturClickerSave', JSON.stringify(gameState));
+        }
+
+        // Загрузка
+        function loadGame() {
+            const saved = localStorage.getItem('arturClickerSave');
+            if (saved) {
+                const loadedState = JSON.parse(saved);
+                // Объединяем загруженное состояние с дефолтным (для новых улучшений)
+                gameState = { ...gameState, ...loadedState };
+                
+                // Обновляем достижения
+                for (let achId in gameState.achievements) {
+                    if (gameState.achievements[achId]) {
+                        const achEl = document.getElementById(achId);
+                        if (achEl) {
+                            achEl.classList.remove('locked');
+                            achEl.classList.add('unlocked');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Расчёт уровня игрока
+        function calculatePlayerLevel() {
+            let totalUpgrades = 0;
+            for (let key in gameState.upgrades) {
+                totalUpgrades += gameState.upgrades[key].level;
+            }
+            const newLevel = Math.max(1, Math.floor(totalUpgrades / 3) + 1);
+            
+            // Если уровень изменился - меняем фото
+            if (newLevel !== gameState.lastLevel) {
+                gameState.lastLevel = newLevel;
+                updateCharacterPhoto();
+            }
+            
+            gameState.playerLevel = newLevel;
+            
+            // Обновляем опыт до следующего уровня
+            updateExpBar(totalUpgrades);
+        }
+
+        // Обновление прогресс-бара опыта
+        function updateExpBar(totalUpgrades) {
+            const currentLevelUpgrades = (gameState.playerLevel - 1) * 3;
+            const upgradesInCurrentLevel = totalUpgrades - currentLevelUpgrades;
+            const upgradesNeeded = 3;
+            const upgradesLeft = upgradesNeeded - upgradesInCurrentLevel;
+            
+            // Процент прогресса
+            const progress = (upgradesInCurrentLevel / upgradesNeeded) * 100;
+            
+            // Обновляем UI
+            document.getElementById('nextLevel').textContent = gameState.playerLevel + 1;
+            document.getElementById('expToNext').textContent = upgradesLeft;
+            document.getElementById('expBar').style.width = progress + '%';
+        }
+
+        // Обновление фото персонажа
+        function updateCharacterPhoto() {
+            // ВАЖНО: Укажите сколько у вас фото (от 1 до N)
+            const maxPhotos = 5; // Измените это число на количество ваших фото
+            const photoNumber = Math.floor(Math.random() * maxPhotos) + 1;
+            
+            const characterImg = document.getElementById('characterImg');
+            const newSrc = `images/photo${photoNumber}.jpg`;
+            
+            // Меняем фото с анимацией
+            characterImg.style.opacity = '0';
+            setTimeout(() => {
+                characterImg.src = newSrc;
+                characterImg.style.opacity = '1';
+            }, 250);
+            
+            // Обновляем бейдж с уровнем
+            document.getElementById('levelBadge').textContent = `Ур. ${gameState.playerLevel}`;
+        }
+
+        // СБАЛАНСИРОВАННЫЙ расчёт силы клика
+        function calculateClickPower() {
+            let power = gameState.clickPower;
+            
+            // Базовые улучшения (линейное сложение)
+            power += gameState.upgrades.finger.level * gameState.upgrades.finger.power;
+            power += gameState.upgrades.hand.level * gameState.upgrades.hand.power;
+            power += gameState.upgrades.arm.level * gameState.upgrades.arm.power;
+            power += gameState.upgrades.cyborg.level * gameState.upgrades.cyborg.power;
+            power += gameState.upgrades.lightning.level * gameState.upgrades.lightning.power;
+
+            // Множители (сильно ослаблены)
+            // Точность: +15% за уровень (было x2)
+            power *= (1 + gameState.upgrades.precision.level * 0.15);
+            
+            // Золотое касание: +30% за уровень (было x3)
+            power *= (1 + gameState.upgrades.golden.level * 0.30);
+            
+            // Королевская власть: +50% за уровень (было x5)
+            power *= (1 + gameState.upgrades.royal.level * 0.50);
+
+            return Math.floor(power);
+        }
+
+        // СБАЛАНСИРОВАННЫЙ расчёт пассивного дохода
+        function calculatePassiveIncome() {
+            let income = 0;
+
+            // Базовые источники дохода
+            income += gameState.upgrades.intern.level * gameState.upgrades.intern.income;
+            income += gameState.upgrades.manager.level * gameState.upgrades.manager.income;
+            income += gameState.upgrades.office.level * gameState.upgrades.office.income;
+            income += gameState.upgrades.factory.level * gameState.upgrades.factory.income;
+            income += gameState.upgrades.corporation.level * gameState.upgrades.corporation.income;
+            income += gameState.upgrades.empire.level * gameState.upgrades.empire.income;
+            income += gameState.upgrades.galaxy.level * gameState.upgrades.galaxy.income;
+
+            // Множители (сильно ослаблены)
+            // Скорость: +20% за уровень (было x2)
+            income *= (1 + gameState.upgrades.speed.level * 0.20);
+            
+            // Золотое касание: +30% за уровень (было x3)
+            income *= (1 + gameState.upgrades.golden.level * 0.30);
+            
+            // Королевская власть: +50% за уровень (было x5)
+            income *= (1 + gameState.upgrades.royal.level * 0.50);
+
+            return Math.floor(income * 10) / 10; // Округляем до 1 знака
+        }
+
+        // СБАЛАНСИРОВАННЫЙ расчёт стоимости улучшения
+        function calculateCost(upgradeKey) {
+            const upgrade = gameState.upgrades[upgradeKey];
+            // Увеличен коэффициент роста с 1.5 до 1.7 для МАКСИМАЛЬНО медленного прогресса
+            return Math.floor(upgrade.baseCost * Math.pow(1.7, upgrade.level));
+        }
+
+        // Клик
+        document.getElementById('clickBtn').addEventListener('click', function(e) {
+            let earnedCoins = calculateClickPower();
+            
+            // СБАЛАНСИРОВАННЫЙ магический бонус
+            if (gameState.upgrades.magic.level > 0) {
+                // 5% шанс за уровень удвоить клик (вместо 10% шанс умножить на огромное число)
+                if (Math.random() < 0.05 * gameState.upgrades.magic.level) {
+                    earnedCoins *= 2;
+                }
+            }
+
+            gameState.balance += earnedCoins;
+            gameState.totalClicks++;
+
+            // Плавающая монета
+            const coin = document.createElement('div');
+            coin.className = 'floating-coin';
+            coin.textContent = '+' + formatNumber(earnedCoins);
+            coin.style.left = e.clientX + 'px';
+            coin.style.top = e.clientY + 'px';
+            document.body.appendChild(coin);
+            setTimeout(() => coin.remove(), 1000);
+
+            updateDisplay();
+            saveGame();
+        });
+
+        // Покупка улучшения
+        function buyUpgrade(upgradeKey) {
+            const upgrade = gameState.upgrades[upgradeKey];
+            const cost = calculateCost(upgradeKey);
+            
+            // Проверка на максимальный уровень для магии
+            if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) {
+                return;
+            }
+            
+            if (gameState.balance >= cost) {
+                gameState.balance -= cost;
+                gameState.upgrades[upgradeKey].level++;
+                
+                calculatePlayerLevel();
+                updateDisplay();
+                saveGame();
+            }
+        }
+
+        // Обновление кнопок
+        function updateButtons() {
+            for (let key in gameState.upgrades) {
+                const upgrade = gameState.upgrades[key];
+                const cost = calculateCost(key);
+                const button = document.querySelector(`#${key}-cost`)?.parentElement;
+                
+                if (button) {
+                    // Проверка на максимальный уровень
+                    if (upgrade.maxLevel && upgrade.level >= upgrade.maxLevel) {
+                        button.disabled = true;
+                        button.querySelector('span').textContent = 'МАКС';
+                    } else {
+                        button.disabled = gameState.balance < cost;
+                    }
+                }
+            }
+        }
+
+        // Переключение вкладок
+        function switchTab(tab) {
+            // Убираем active у всех вкладок и секций
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.upgrades-section').forEach(section => section.classList.remove('active'));
+
+            // Добавляем active к выбранной
+            event.target.closest('.nav-item').classList.add('active');
+            
+            if (tab === 'main') {
+                document.getElementById('mainSection').classList.add('active');
+            } else if (tab === 'click') {
+                document.getElementById('clickUpgrades').classList.add('active');
+            } else if (tab === 'passive') {
+                document.getElementById('passiveUpgrades').classList.add('active');
+            } else if (tab === 'special') {
+                document.getElementById('specialUpgrades').classList.add('active');
+            } else if (tab === 'achievements') {
+                document.getElementById('achievements').classList.add('active');
+            }
+        }
+
+        // Проверка достижений
+        function checkAchievements() {
+            // 100 кликов
+            if (!gameState.achievements['ach-clicks-100'] && gameState.totalClicks >= 100) {
+                unlockAchievement('ach-clicks-100', 10);
+            }
+
+            // 1000 кликов
+            if (!gameState.achievements['ach-clicks-1000'] && gameState.totalClicks >= 1000) {
+                unlockAchievement('ach-clicks-1000', 50);
+            }
+
+            // 1000 монет
+            if (!gameState.achievements['ach-balance-1000'] && gameState.balance >= 1000) {
+                unlockAchievement('ach-balance-1000', 30);
+            }
+
+            // 10000 монет
+            if (!gameState.achievements['ach-balance-10000'] && gameState.balance >= 10000) {
+                unlockAchievement('ach-balance-10000', 200);
+            }
+
+            // Первое улучшение
+            if (!gameState.achievements['ach-first-upgrade']) {
+                for (let key in gameState.upgrades) {
+                    if (gameState.upgrades[key].level > 0) {
+                        unlockAchievement('ach-first-upgrade', 5);
+                        break;
+                    }
+                }
+            }
+
+            // 100/сек
+            if (!gameState.achievements['ach-passive-income'] && calculatePassiveIncome() >= 100) {
+                unlockAchievement('ach-passive-income', 1000);
+            }
+
+            // Миллионер
+            if (!gameState.achievements['ach-millionaire'] && gameState.balance >= 1000000) {
+                unlockAchievement('ach-millionaire', 10000);
+            }
+
+            // Все улучшения
+            if (!gameState.achievements['ach-master']) {
+                let allBought = true;
+                for (let key in gameState.upgrades) {
+                    if (gameState.upgrades[key].level === 0) {
+                        allBought = false;
+                        break;
+                    }
+                }
+                if (allBought) {
+                    unlockAchievement('ach-master', 50000);
+                }
+            }
+        }
+
+        // Разблокировка достижения
+        function unlockAchievement(id, reward) {
+            gameState.achievements[id] = true;
+            gameState.balance += reward;
+            
+            const achEl = document.getElementById(id);
+            if (achEl) {
+                achEl.classList.remove('locked');
+                achEl.classList.add('unlocked');
+            }
+
+            saveGame();
+        }
+
+        // Пассивный доход
+        setInterval(() => {
+            const income = calculatePassiveIncome() / 10; // Каждые 100мс
+            gameState.balance += income;
+            updateDisplay();
+        }, 100);
+
+        // Автосохранение
+        setInterval(saveGame, 5000);
+
+        // Сброс игры
+        function resetGame() {
+            if (confirm('Вы уверены, что хотите сбросить весь прогресс?')) {
+                localStorage.removeItem('arturClickerSave');
+                location.reload();
+            }
+        }
+
+        // Инициализация
+        loadGame();
+        calculatePlayerLevel();
+        updateCharacterPhoto();
+        updateDisplay();
+
+        // Отключаем контекстное меню (правый клик)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+
+        // Отключаем долгое нажатие на мобильных
+        document.addEventListener('touchstart', function(e) {
+            if (e.target.tagName === 'IMG') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    </script>
+</body>
+</html>
