@@ -59,7 +59,7 @@
 
         .photo {
             max-width: 100%;
-            max-height: calc(95vh - 220px);
+            max-height: calc(95vh - 280px);
             width: auto;
             height: auto;
             display: block;
@@ -74,7 +74,18 @@
             opacity: 1;
         }
 
-        .button-container {
+        /* Контейнер для навигации по фото */
+        .photo-nav-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            margin-bottom: 15px;
+        }
+
+        /* Контейнер для игр */
+        .games-container {
             display: flex;
             gap: 15px;
             justify-content: center;
@@ -122,6 +133,17 @@
             width: 18px;
             height: 18px;
             fill: white;
+        }
+
+        /* Кнопка кликера */
+        .clicker-btn {
+            background: linear-gradient(135deg, #ffa726 0%, #fb8c00 100%);
+            box-shadow: 0 5px 15px rgba(255, 167, 38, 0.4);
+        }
+
+        .clicker-btn:hover {
+            box-shadow: 0 8px 25px rgba(255, 167, 38, 0.6) !important;
+            transform: translateY(-3px) !important;
         }
 
         /* Кнопка поймай игры */
@@ -189,9 +211,10 @@
                 border-radius: 10px;
             }
 
-            .photo { max-height: calc(98vh - 170px); }
+            .photo { max-height: calc(98vh - 220px); }
 
-            .button-container {
+            .photo-nav-container,
+            .games-container {
                 gap: 8px;
                 margin-bottom: 8px;
             }
@@ -218,7 +241,7 @@
                 margin-bottom: 8px;
             }
 
-            .photo { max-height: calc(98vh - 150px); }
+            .photo { max-height: calc(98vh - 200px); }
 
             .nav-btn {
                 padding: 8px 13px;
@@ -241,8 +264,9 @@
             }
 
             .photo-container { margin-bottom: 5px; }
-            .photo { max-height: calc(95vh - 110px); }
-            .button-container { margin-bottom: 3px; }
+            .photo { max-height: calc(95vh - 130px); }
+            .photo-nav-container,
+            .games-container { margin-bottom: 3px; }
         }
     </style>
 </head>
@@ -254,12 +278,27 @@
             <img id="photo" class="photo fade-in" src="" alt="Фото">
         </div>
 
-        <div class="button-container">
+        <!-- Навигация по фото -->
+        <div class="photo-nav-container">
             <button class="nav-btn" id="prevBtn" onclick="prevPhoto()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
                 </svg>
                 Назад
+            </button>
+
+            <button class="nav-btn" id="nextBtn" onclick="nextPhoto()">
+                Вперед
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Игры -->
+        <div class="games-container">
+            <button class="nav-btn clicker-btn" onclick="window.location.href='artur-clicker.html'">
+                💎 Кликер
             </button>
 
             <button class="nav-btn game-btn" onclick="window.location.href='game.html'">
@@ -268,13 +307,6 @@
 
             <button class="nav-btn wave-btn" onclick="window.location.href='wave-game.html'">
                 〰️ Волна
-            </button>
-
-            <button class="nav-btn" id="nextBtn" onclick="nextPhoto()">
-                Вперед
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-                </svg>
             </button>
         </div>
 
@@ -303,6 +335,7 @@
             total.textContent = photos.length;
             if (photos.length > 0) {
                 loadPhoto(0);
+                updateButtons(); // Добавляем вызов updateButtons при инициализации
             } else {
                 photo.alt = 'Нет фотографий';
                 updateButtons();
