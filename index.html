@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Галерея фото</title>
+    <title>Галерея Артура</title>
     <style>
         * {
             margin: 0;
@@ -59,7 +59,7 @@
 
         .photo {
             max-width: 100%;
-            max-height: calc(95vh - 200px);
+            max-height: calc(95vh - 220px);
             width: auto;
             height: auto;
             display: block;
@@ -124,14 +124,43 @@
             fill: white;
         }
 
-        /* Кнопка игры */
+        /* Кнопка поймай игры */
         .game-btn {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
         }
 
         .game-btn:hover {
-            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6) !important;
+            transform: translateY(-3px) !important;
+        }
+
+        /* Кнопка волновой игры */
+        .wave-btn {
+            background: linear-gradient(135deg, #0a0a2e 0%, #00f5ff 100%);
+            box-shadow: 0 5px 15px rgba(0, 245, 255, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+            transform: translateX(-100%);
+            animation: waveShimmer 2.2s ease-in-out infinite;
+            border-radius: 50px;
+        }
+
+        @keyframes waveShimmer {
+            0%, 55% { transform: translateX(-100%); }
+            100%     { transform: translateX(100%); }
+        }
+
+        .wave-btn:hover {
+            box-shadow: 0 8px 25px rgba(0, 245, 255, 0.6) !important;
+            transform: translateY(-3px) !important;
         }
 
         .photo-counter {
@@ -140,16 +169,9 @@
             flex-shrink: 0;
         }
 
-        .loading {
-            color: #999;
-            font-size: 1.2rem;
-        }
-
         /* Мобильные устройства */
         @media (max-width: 768px) {
-            body {
-                padding: 5px;
-            }
+            body { padding: 5px; }
 
             .container {
                 padding: 12px;
@@ -167,19 +189,17 @@
                 border-radius: 10px;
             }
 
-            .photo {
-                max-height: calc(98vh - 150px);
-            }
+            .photo { max-height: calc(98vh - 170px); }
 
             .button-container {
-                gap: 10px;
+                gap: 8px;
                 margin-bottom: 8px;
             }
 
             .nav-btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
-                min-width: 100px;
+                padding: 10px 18px;
+                font-size: 0.85rem;
+                min-width: 90px;
             }
 
             .nav-btn svg {
@@ -187,38 +207,28 @@
                 height: 16px;
             }
 
-            .photo-counter {
-                font-size: 0.9rem;
-            }
+            .photo-counter { font-size: 0.9rem; }
         }
 
-        /* Очень маленькие экраны */
         @media (max-width: 480px) {
-            .container {
-                padding: 8px;
-            }
+            .container { padding: 8px; }
 
             h1 {
                 font-size: 1.1rem;
                 margin-bottom: 8px;
             }
 
-            .photo {
-                max-height: calc(98vh - 130px);
-            }
+            .photo { max-height: calc(98vh - 150px); }
 
             .nav-btn {
-                padding: 8px 15px;
-                font-size: 0.85rem;
-                min-width: 90px;
+                padding: 8px 13px;
+                font-size: 0.8rem;
+                min-width: 80px;
             }
 
-            .photo-counter {
-                font-size: 0.85rem;
-            }
+            .photo-counter { font-size: 0.85rem; }
         }
 
-        /* Альбомная ориентация на мобильных */
         @media (max-height: 500px) and (orientation: landscape) {
             .container {
                 padding: 8px;
@@ -230,17 +240,9 @@
                 margin-bottom: 5px;
             }
 
-            .photo-container {
-                margin-bottom: 5px;
-            }
-
-            .photo {
-                max-height: calc(95vh - 100px);
-            }
-
-            .button-container {
-                margin-bottom: 3px;
-            }
+            .photo-container { margin-bottom: 5px; }
+            .photo { max-height: calc(95vh - 110px); }
+            .button-container { margin-bottom: 3px; }
         }
     </style>
 </head>
@@ -259,9 +261,15 @@
                 </svg>
                 Назад
             </button>
+
             <button class="nav-btn game-btn" onclick="window.location.href='game.html'">
-                🎮 Игра
+                🎮 Поймай
             </button>
+
+            <button class="nav-btn wave-btn" onclick="window.location.href='wave-game.html'">
+                〰️ Волна
+            </button>
+
             <button class="nav-btn" id="nextBtn" onclick="nextPhoto()">
                 Вперед
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -276,42 +284,21 @@
     </div>
 
     <script>
-        // ========================================
-        // НАСТРОЙКА: Укажите папку с фотографиями
-        // ========================================
         const PHOTO_FOLDER = 'images/';
+        const TOTAL_PHOTOS = 2;
         
-        // ВАРИАНТ 1: Автоматическое определение (если файлы названы по порядку)
-        // Укажите общее количество фотографий
-        const TOTAL_PHOTOS = 2; // Измените на ваше количество
-        
-        // Автоматически создаём массив: photo1.jpg, photo2.jpg, photo3.jpg...
         const photos = Array.from({ length: TOTAL_PHOTOS }, (_, i) => 
             `${PHOTO_FOLDER}photo${i + 1}.jpg`
         );
 
-        // ВАРИАНТ 2: Ручной список (раскомментируйте, если хотите указать вручную)
-        /*
-        const photos = [
-            'images/фото1.jpg',
-            'images/фото2.png',
-            'images/моя_картинка.jpg',
-            'images/отпуск.jpeg',
-            // Добавьте сколько угодно...
-        ];
-        */
-
-        // ========================================
-        
         let currentPhoto = 0;
-        let isTransitioning = false; // Флаг для предотвращения множественных нажатий
+        let isTransitioning = false;
         const photo = document.getElementById('photo');
         const counter = document.getElementById('counter');
         const total = document.getElementById('total');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
 
-        // Инициализация
         function init() {
             total.textContent = photos.length;
             if (photos.length > 0) {
@@ -323,69 +310,38 @@
         }
 
         function loadPhoto(index) {
-            // Проверка границ
-            if (index < 0 || index >= photos.length) {
-                console.error('Неверный индекс фото:', index);
-                return;
-            }
-
+            if (index < 0 || index >= photos.length) return;
             photo.src = photos[index];
             counter.textContent = index + 1;
             currentPhoto = index;
         }
 
         function nextPhoto() {
-            // Проверка: не идёт ли уже переход и не достигнут ли конец
-            if (isTransitioning || currentPhoto >= photos.length - 1) {
-                return;
-            }
-
+            if (isTransitioning || currentPhoto >= photos.length - 1) return;
             isTransitioning = true;
             photo.classList.remove('fade-in');
             photo.classList.add('fade-out');
-
             setTimeout(() => {
-                currentPhoto++;
-                
-                // Дополнительная проверка границ
-                if (currentPhoto >= photos.length) {
-                    currentPhoto = photos.length - 1;
-                }
-                
+                currentPhoto = Math.min(currentPhoto + 1, photos.length - 1);
                 loadPhoto(currentPhoto);
-                
                 photo.classList.remove('fade-out');
                 photo.classList.add('fade-in');
                 updateButtons();
-                
                 isTransitioning = false;
             }, 250);
         }
 
         function prevPhoto() {
-            // Проверка: не идёт ли уже переход и не достигнут ли начало
-            if (isTransitioning || currentPhoto <= 0) {
-                return;
-            }
-
+            if (isTransitioning || currentPhoto <= 0) return;
             isTransitioning = true;
             photo.classList.remove('fade-in');
             photo.classList.add('fade-out');
-
             setTimeout(() => {
-                currentPhoto--;
-                
-                // Дополнительная проверка границ
-                if (currentPhoto < 0) {
-                    currentPhoto = 0;
-                }
-
+                currentPhoto = Math.max(currentPhoto - 1, 0);
                 loadPhoto(currentPhoto);
-
                 photo.classList.remove('fade-out');
                 photo.classList.add('fade-in');
                 updateButtons();
-                
                 isTransitioning = false;
             }, 250);
         }
@@ -395,18 +351,11 @@
             nextBtn.disabled = currentPhoto === photos.length - 1;
         }
 
-        // Переключение по клавишам
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault();
-                nextPhoto();
-            } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                prevPhoto();
-            }
+            if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextPhoto(); }
+            else if (e.key === 'ArrowLeft') { e.preventDefault(); prevPhoto(); }
         });
 
-        // Запуск при загрузке страницы
         window.addEventListener('load', init);
     </script>
 </body>
