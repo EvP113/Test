@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>WAVE DASH</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+:root {
+  --neon-cyan: #00f5ff;
+  --neon-pink: #ff006e;
+  --neon-yellow: #fff000;
+  --neon-green: #39ff14;
+  --dark-bg: #050510;
+  --mid-bg: #0a0a2e;
+  --panel-bg: rgba(0,5,30,0.92);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  background: var(--dark-bg);
+  font-family: 'Rajdhani', sans-serif;
+  color: white;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ═══════════════════ SCREENS ═══════════════════ */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  z-index: 100;
+  transition: opacity 0.4s ease;
+}
+.screen.hidden { opacity:0; pointer-events:none; }
+
+/* Animated starfield background */
+.screen::before {
+  content:'';
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(0,245,255,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(255,0,110,0.06) 0%, transparent 60%),
+    var(--dark-bg);
+  z-index:-1;
+}
+
+/* ═══════════════════ START SCREEN ═══════════════════ */
+#startScreen {
+  gap: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Кнопка полного экрана */
+.fullscreen-btn {
+  position: fixed;
+  top: 14px; left: 14px;
+  width: 38px; height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.6);
+  font-size: 1rem;
+  cursor: pointer;
+  z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.fullscreen-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+
+.game-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.8rem, 7vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-align: center;
+  margin-bottom: 2px;
+  filter: drop-shadow(0 0 20px rgba(0,245,255,0.5));
+  animation: titlePulse 3s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes titlePulse {
+  0%,100% { filter: drop-shadow(0 0 20px rgba(0,245,255,0.5)); }
+  50%      { filter: drop-shadow(0 0 40px rgba(255,0,110,0.8)); }
+}
+
+.game-subtitle {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.5rem, 1.5vw, 0.9rem);
+  letter-spacing: 0.4em;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: clamp(12px, 3vh, 40px);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* SKIN SELECTION */
+.skin-section {
+  width: min(90vw, 600px);
+  margin-bottom: clamp(10px, 2vh, 32px);
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--neon-cyan);
+  margin-bottom: 10px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.skin-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  max-height: 160px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.skin-card {
+  width: clamp(48px, 8vw, 68px);
+  height: clamp(48px, 8vw, 68px);
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  background: rgba(0,245,255,0.05);
+  flex-shrink: 0;
+}
+
+.skin-card img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+}
+
+.skin-card.selected {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,245,255,0.6), inset 0 0 10px rgba(0,245,255,0.2);
+  transform: scale(1.08);
+}
+
+.skin-card .check {
+  position: absolute; top: 3px; right: 3px;
+  width: 16px; height: 16px;
+  background: var(--neon-cyan);
+  border-radius: 50%;
+  display: none;
+  align-items: center; justify-content: center;
+  font-size: 9px;
+}
+.skin-card.selected .check { display: flex; }
+
+/* DIFFICULTY BUTTONS */
+.diff-section {
+  width: min(90vw, 600px);
+  margin-bottom: clamp(12px, 2.5vh, 36px);
+  flex-shrink: 0;
+}
+
+.diff-grid {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.diff-btn {
+  flex: 1;
+  max-width: 160px;
+  padding: clamp(8px, 1.5vh, 14px) 10px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.55rem, 1.2vw, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+.diff-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.diff-btn.easy   { --d-color: var(--neon-green); }
+.diff-btn.hard   { --d-color: var(--neon-yellow); }
+.diff-btn.insane { --d-color: var(--neon-pink); }
+
+.diff-btn.selected {
+  border-color: var(--d-color);
+  color: var(--d-color);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--d-color) 50%, transparent),
+              inset 0 0 15px color-mix(in srgb, var(--d-color) 10%, transparent);
+}
+
+.diff-icon { font-size: clamp(1rem, 3vw, 1.6rem); display: block; margin-bottom: 4px; }
+.diff-label { display: block; }
+.diff-desc {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+  opacity: 0.7;
+}
+
+/* PLAY BUTTON */
+.play-btn {
+  width: min(90vw, 340px);
+  padding: clamp(12px, 2vh, 20px);
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--neon-cyan), #0080ff);
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.9rem, 2.5vw, 1.3rem);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--dark-bg);
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(0,245,255,0.5);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.play-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%,60% { transform: translateX(-100%); }
+  100%   { transform: translateX(100%); }
+}
+
+.play-btn:active { transform: scale(0.97); }
+.play-btn:hover  { box-shadow: 0 0 60px rgba(0,245,255,0.8); }
+
+/* ═══════════════════ LANDSCAPE на телефоне ═══════════════════ */
+@media (max-height: 520px) and (orientation: landscape) {
+  #startScreen {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    overflow-y: auto;
+  }
+
+  /* Левая колонка — заголовок */
+  .title-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .game-title {
+    font-size: clamp(1.4rem, 5vw, 2.2rem);
+    margin-bottom: 2px;
+  }
+
+  .game-subtitle {
+    font-size: 0.5rem;
+    margin-bottom: 0;
+    letter-spacing: 0.25em;
+  }
+
+  .skin-section {
+    width: auto;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .skin-grid {
+    max-height: 100px;
+    gap: 6px;
+  }
+
+  .skin-card {
+    width: 44px;
+    height: 44px;
+  }
+
+  .diff-section {
+    width: auto;
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  .diff-grid { gap: 6px; }
+
+  .diff-btn {
+    padding: 6px 8px;
+    max-width: 100px;
+    font-size: 0.55rem;
+  }
+
+  .diff-icon { font-size: 1rem; margin-bottom: 2px; }
+  .diff-desc { display: none; } /* скрываем описание на маленьких экранах */
+
+  .section-label { font-size: 0.6rem; margin-bottom: 6px; }
+
+  .play-btn {
+    width: min(40vw, 220px);
+    padding: 12px;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+}
+
+/* ═══════════════════ GAME CANVAS ═══════════════════ */
+#gameCanvas {
+  position: fixed; inset: 0;
+  display: block;
+  z-index: 1;
+}
+
+/* ═══════════════════ GAME HUD ═══════════════════ */
+#gameHud {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+}
+
+.hud-stat {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.7rem, 2.5vw, 1rem);
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0,245,255,0.8);
+  color: var(--neon-cyan);
+}
+
+.hud-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress-track {
+  width: clamp(120px, 25vw, 220px);
+  height: 4px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+  transition: width 0.1s linear;
+  box-shadow: 0 0 8px var(--neon-cyan);
+}
+
+.pause-btn-hud {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.3);
+  background: rgba(0,0,0,0.5);
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: all;
+  transition: all 0.2s;
+  touch-action: manipulation;
+}
+.pause-btn-hud:active { transform: scale(0.9); }
+
+/* ═══════════════════ DEATH / WIN SCREENS ═══════════════════ */
+#deathScreen, #winScreen {
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+}
+
+.result-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 7vw, 4rem);
+  font-weight: 900;
+  margin-bottom: 10px;
+  animation: resultSlam 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes resultSlam {
+  from { transform: scale(2); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+.death-title { color: var(--neon-pink); text-shadow: 0 0 30px var(--neon-pink); }
+.win-title   { color: var(--neon-yellow); text-shadow: 0 0 30px var(--neon-yellow); }
+
+.result-stats {
+  font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 32px;
+  text-align: center;
+  line-height: 2;
+}
+
+.result-stat-val {
+  color: white;
+  font-weight: 700;
+  font-size: 1.2em;
+}
+
+.result-btns {
+  display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+}
+
+.result-btn {
+  padding: 14px 30px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s;
+  touch-action: manipulation;
+  text-transform: uppercase;
+}
+.result-btn.primary {
+  background: linear-gradient(135deg, var(--neon-cyan), #0070e0);
+  color: #000;
+  box-shadow: 0 0 25px rgba(0,245,255,0.5);
+}
+.result-btn.secondary {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+.result-btn:active { transform: scale(0.96); }
+
+/* ═══════════════════ PAUSE SCREEN ═══════════════════ */
+#pauseScreen {
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(6px);
+  gap: 20px;
+}
+.pause-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
+  color: white;
+  text-shadow: 0 0 20px rgba(255,255,255,0.5);
+  margin-bottom: 10px;
+}
+</style>
+</head>
+<body>
+
+<!-- Кнопка полного экрана -->
+<button class="fullscreen-btn" id="fsBtn" onclick="toggleFullscreen()" title="Полный экран">⛶</button>
+
+<!-- ═══ START SCREEN ═══ -->
+<div class="screen" id="startScreen">
+  <div class="title-block">
+    <div class="game-title">WAVE DASH</div>
+    <div class="game-subtitle">BY ARTHUR</div>
+  </div>
+
+  <div class="skin-section">
+    <div class="section-label">▸ Выбери скин</div>
+    <div class="skin-grid" id="skinGrid">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <div class="diff-section">
+    <div class="section-label">▸ Сложность</div>
+    <div class="diff-grid">
+      <button class="diff-btn easy selected" data-diff="easy" onclick="selectDiff(this)">
+        <span class="diff-icon">🟢</span>
+        <span class="diff-label">Легко</span>
+        <span class="diff-desc">Для начала</span>
+      </button>
+      <button class="diff-btn hard" data-diff="hard" onclick="selectDiff(this)">
+        <span class="diff-icon">🟡</span>
+        <span class="diff-label">Сложно</span>
+        <span class="diff-desc">Уже серьёзно</span>
+      </button>
+      <button class="diff-btn insane" data-diff="insane" onclick="selectDiff(this)">
+        <span class="diff-icon">🔴</span>
+        <span class="diff-label">Невозможно</span>
+        <span class="diff-desc">Удачи 😈</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="play-btn" id="playBtn" onclick="startGame()">▶ ИГРАТЬ</button>
+</div>
+
+<!-- ═══ GAME HUD ═══ -->
+<div id="gameHud" style="display:none">
+  <div class="hud-stat" id="hudAttempt">ПОПЫТКА 1</div>
+  <div class="hud-center">
+    <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="hud-stat" style="font-size:0.65rem; opacity:0.7" id="hudPercent">0%</div>
+  </div>
+  <button class="pause-btn-hud" id="pauseBtnHud" onclick="pauseGame()">⏸</button>
+</div>
+
+<!-- ═══ CANVAS ═══ -->
+<canvas id="gameCanvas" style="display:none"></canvas>
+
+<!-- ═══ DEATH SCREEN ═══ -->
+<div class="screen hidden" id="deathScreen">
+  <div class="result-title death-title">ПОГИБ</div>
+  <div class="result-stats">
+    Дошёл до <span class="result-stat-val" id="deathPercent">0%</span><br>
+    Попытка <span class="result-stat-val" id="deathAttempt">1</span><br>
+    Лучший результат <span class="result-stat-val" id="deathBest">0%</span>
+  </div>
+  <div class="result-btns">
+    <button class="result-btn primary" onclick="retryGame()">↺ ЗАНОВО</button>
+    <button class="result-btn secondary" onclick="goMenu()">☰ МЕНЮ</button>
+  </div>
+</div>
+
+<!-- ═══ WIN SCREEN ═══ -->
+<div class="screen hidden" id="winScreen">
+  <div class="result-title win-title">✓ ПОБЕДА!</div>
+  <div class="result-stats">
+    Сложность <span class="result-stat-val" id="winDiff">—</span><br>
+    Попытка <span class="result-stat-val" id="winAttempt">1</span><br>
+    Рекорд <span class="result-stat-val" id="winBest">0%</span>
+  </div>
+  <div class="result-btns">
+    <button class="result-btn primary" onclick="retryGame()">↺ ЕЩЁ РАЗ</button>
+    <button class="result-btn secondary" onclick="goMenu()">☰ МЕНЮ</button>
+  </div>
+</div>
+
+<!-- ═══ PAUSE SCREEN ═══ -->
+<div class="screen hidden" id="pauseScreen">
+  <div class="pause-title">⏸ ПАУЗА</div>
+  <div class="result-btns">
+    <button class="result-btn primary" onclick="resumeGame()">▶ ПРОДОЛЖИТЬ</button>
+    <button class="result-btn secondary" onclick="retryGame()">↺ ЗАНОВО</button>
+    <button class="result-btn secondary" onclick="goMenu()">☰ МЕНЮ</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CONFIGURATION
+// ════════════════════════════════════════════════════════
+const PHOTO_FOLDER = 'game-photos/';
+const TOTAL_PHOTOS = 3; // ← Укажи количество фото
+
+const DIFFICULTIES = {
+  easy: {
+    name: 'ЛЁГКО',
+    speed: 3.5,
+    gapMin: 160, gapMax: 240,
+    segLen: [120, 220],
+    spikeFreq: 0.10,
+    spikeSize: 20,
+    ceilFloorH: 55,
+    colorA: '#39ff14', colorB: '#00f5ff',
+  },
+  hard: {
+    name: 'СЛОЖНО',
+    speed: 5.5,
+    gapMin: 150, gapMax: 220,
+    segLen: [70, 140],
+    spikeFreq: 0.22,
+    spikeSize: 24,
+    ceilFloorH: 45,
+    colorA: '#fff000', colorB: '#ff8800',
+  },
+  insane: {
+    name: 'НЕВОЗМОЖНО',
+    speed: 8,
+    gapMin: 120, gapMax: 180,
+    segLen: [45, 90],
+    spikeFreq: 0.38,
+    spikeSize: 26,
+    ceilFloorH: 40,
+    colorA: '#ff006e', colorB: '#ff00ff',
+  },
+};
+
+const LEVEL_LENGTH = 30000; // ~3x длиннее
+const WAVE_SIZE  = 20;
+
+// ════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════
+let selectedSkin = 0;
+let selectedDiff = 'easy';
+let attempt = 1;
+let bestPct = {};
+
+let canvas, ctx;
+let animId = null;
+let gameState = 'menu'; // menu | playing | dead | win | paused
+
+// Physics
+let playerY, velY, isHeld;
+let worldX;
+let particles = [];
+let trail = [];
+
+// Level
+let segments = []; // [{x, topH, botH, spikes:[{x,onTop}]}]
+
+// Skin image
+let skinImg = null;
+let skinImgLoaded = false;
+
+// ════════════════════════════════════════════════════════
+//  SKIN SETUP
+// ════════════════════════════════════════════════════════
+function buildSkinGrid() {
+  const grid = document.getElementById('skinGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < TOTAL_PHOTOS; i++) {
+    const card = document.createElement('div');
+    card.className = 'skin-card' + (i === 0 ? ' selected' : '');
+    card.onclick = () => chooseSkin(i);
+    const img = document.createElement('img');
+    img.src = PHOTO_FOLDER + 'photo' + (i + 1) + '.jpg';
+    img.draggable = false;
+    img.ondragstart = () => false;
+    img.onerror = () => {
+      card.style.background = `hsl(${i * 137},70%,50%)`;
+      img.style.display = 'none';
+    };
+    const check = document.createElement('div');
+    check.className = 'check';
+    check.textContent = '✓';
+    card.appendChild(img);
+    card.appendChild(check);
+    grid.appendChild(card);
+  }
+}
+
+function chooseSkin(idx) {
+  selectedSkin = idx;
+  document.querySelectorAll('.skin-card').forEach((c, i) => {
+    c.classList.toggle('selected', i === idx);
+  });
+  loadSkinImage(idx);
+}
+
+function loadSkinImage(idx) {
+  skinImg = new Image();
+  skinImgLoaded = false;
+  skinImg.onload = () => { skinImgLoaded = true; };
+  skinImg.src = PHOTO_FOLDER + 'photo' + (idx + 1) + '.jpg';
+}
+
+function selectDiff(btn) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedDiff = btn.dataset.diff;
+}
+
+// ════════════════════════════════════════════════════════
+//  LEVEL GENERATOR  (column-based, guaranteed passable)
+// ════════════════════════════════════════════════════════
+const SAFE_ZONE_LENGTH = 480; // px до начала препятствий
+
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+
+function generateLevel(cfg, W, H) {
+  /*
+    Уровень хранится как массив "столбцов" cols[i] = { x, topY, botY, spikeTop, spikeBot }
+    topY  = нижняя граница верхней стены (потолок тоннеля)
+    botY  = верхняя граница нижней стены (пол тоннеля)
+    Гарантируется: botY - topY >= cfg.gapMin всегда
+  */
+  const rng = mulberry32(Date.now() ^ (Math.random() * 0xFFFFFFFF | 0));
+  const r   = () => rng();
+  const rf  = (a, b) => r() * (b - a) + a;
+
+  const STEP  = 12;           // ширина каждого столбца (px)
+  const total = LEVEL_LENGTH + W;
+  const cols  = [];
+
+  const minTop  = cfg.ceilFloorH;
+  const maxBot  = H - cfg.ceilFloorH;
+  const center  = H / 2;
+
+  // Начальное состояние — тоннель по всей высоте
+  let curMid = center;
+  let curGap = H - cfg.ceilFloorH * 2; // начинаем с максимального зазора
+
+  // Плавность изменения туннеля (меньше = плавнее)
+  const midSmooth = cfg.speed < 6 ? 0.025 : cfg.speed < 8 ? 0.04 : 0.06;
+  const gapSmooth = cfg.speed < 6 ? 0.018 : cfg.speed < 8 ? 0.028 : 0.04;
+
+  let targetMid = center;
+  let targetGap = curGap;
+  let nextTargetChange = 0;
+
+  // Для шипов — нельзя ставить два подряд
+  let lastSpikeCol = -999;
+
+  for (let x = 0; x < total; x += STEP) {
+    const inSafe       = x < SAFE_ZONE_LENGTH;
+    const inTransition = x < SAFE_ZONE_LENGTH + 300 && !inSafe;
+
+    // --- Обновляем цель тоннеля ---
+    if (x >= nextTargetChange && !inSafe) {
+      const segLen = rf(cfg.segLen[0], cfg.segLen[1]);
+      nextTargetChange = x + segLen;
+
+      if (inTransition) {
+        // плавно сужаем к нормальному gap
+        const t = (x - SAFE_ZONE_LENGTH) / 300;
+        const maxStartGap = H - cfg.ceilFloorH * 2;
+        targetGap = maxStartGap * (1 - t) + cfg.gapMax * t;
+        targetMid = center + rf(-H * 0.08, H * 0.08) * t;
+      } else {
+        targetGap = rf(cfg.gapMin, cfg.gapMax);
+        targetMid = center + rf(-H * 0.22, H * 0.22);
+      }
+    }
+
+    // В safe zone — максимальный открытый тоннель
+    if (inSafe) {
+      targetGap = H - cfg.ceilFloorH * 2;
+      targetMid = center;
+    }
+
+    // Плавное движение к цели
+    curMid += (targetMid - curMid) * midSmooth;
+    curGap += (targetGap - curGap) * gapSmooth;
+
+    // Жёсткие границы
+    const minGap = inSafe ? H - cfg.ceilFloorH * 2 - 4 : cfg.gapMin;
+    curGap = Math.max(minGap, curGap);
+
+    let topY = curMid - curGap / 2;
+    let botY = curMid + curGap / 2;
+
+    // Не выходим за стены
+    topY = Math.max(minTop, Math.min(topY, center - minGap / 2));
+    botY = Math.min(maxBot, Math.max(botY, center + minGap / 2));
+
+    // Ещё раз гарантируем минимальный зазор
+    if (botY - topY < minGap) {
+      const mid2 = (topY + botY) / 2;
+      topY = mid2 - minGap / 2;
+      botY = mid2 + minGap / 2;
+      topY = Math.max(minTop, topY);
+      botY = Math.min(maxBot, botY);
+    }
+
+    // --- Шипы ---
+    // Шип занимает cfg.spikeSize px в глубину тоннеля.
+    // Ставим только если:
+    //   • не safe/transition зона
+    //   • достаточно места (зазор > gap_min + 2*spikeSize + запас)
+    //   • не два подряд
+    let spikeTop = false, spikeBot = false;
+    const gap = botY - topY;
+    const spikeRoom = cfg.spikeSize * 2 + WAVE_SIZE * 2 + 10;
+
+    if (!inSafe && !inTransition && gap > spikeRoom && (x - lastSpikeCol) > cfg.spikeSize * 3 + 20) {
+      if (r() < cfg.spikeFreq * STEP / 60) {
+        // Только один шип за раз (не сверху И снизу одновременно)
+        const side = r() < 0.5 ? 'top' : 'bot';
+        // Дополнительная проверка: шип не должен перекрыть больше трети зазора
+        if (side === 'top' && gap - cfg.spikeSize > minGap) {
+          spikeTop = true;
+          lastSpikeCol = x;
+        } else if (side === 'bot' && gap - cfg.spikeSize > minGap) {
+          spikeBot = true;
+          lastSpikeCol = x;
+        }
+      }
+    }
+
+    cols.push({ x, topY, botY, spikeTop, spikeBot, safe: inSafe });
+  }
+
+  return cols;
+}
+
+// ════════════════════════════════════════════════════════
+//  GAME INIT / FLOW
+// ════════════════════════════════════════════════════════
+function startGame() {
+  canvas  = document.getElementById('gameCanvas');
+  ctx     = canvas.getContext('2d');
+  resizeCanvas();
+
+  const cfg = DIFFICULTIES[selectedDiff];
+  segments = generateLevel(cfg, canvas.width, canvas.height);
+
+  playerY = canvas.height / 2;
+  velY = 0;
+  isHeld = false;
+  worldX = 0;
+  particles = [];
+  trail = [];
+
+  loadSkinImage(selectedSkin);
+
+  gameState = 'playing';
+  showScreen(null);
+  document.getElementById('gameCanvas').style.display = 'block';
+  document.getElementById('gameHud').style.display = 'flex';
+  document.getElementById('hudAttempt').textContent = 'ПОПЫТКА ' + attempt;
+
+  if (animId) cancelAnimationFrame(animId);
+  loop();
+}
+
+function retryGame() {
+  attempt++;
+  startGame();
+}
+
+function goMenu() {
+  gameState = 'menu';
+  attempt = 1;
+  if (animId) cancelAnimationFrame(animId);
+  document.getElementById('gameCanvas').style.display = 'none';
+  document.getElementById('gameHud').style.display = 'none';
+  showScreen('startScreen');
+}
+
+function pauseGame() {
+  if (gameState !== 'playing') return;
+  gameState = 'paused';
+  showScreen('pauseScreen');
+}
+
+function resumeGame() {
+  if (gameState !== 'paused') return;
+  gameState = 'playing';
+  showScreen(null);
+  loop();
+}
+
+function showScreen(id) {
+  ['startScreen','deathScreen','winScreen','pauseScreen'].forEach(s => {
+    document.getElementById(s).classList.toggle('hidden', s !== id);
+  });
+}
+
+// ════════════════════════════════════════════════════════
+//  CANVAS / RESIZE
+// ════════════════════════════════════════════════════════
+function resizeCanvas() {
+  const c = document.getElementById('gameCanvas');
+  c.width  = window.innerWidth;
+  c.height = window.innerHeight;
+}
+
+// ════════════════════════════════════════════════════════
+//  GAME LOOP
+// ════════════════════════════════════════════════════════
+function loop() {
+  if (gameState !== 'playing') return;
+  update();
+  render();
+  animId = requestAnimationFrame(loop);
+}
+
+// ════════════════════════════════════════════════════════
+//  UPDATE
+// ════════════════════════════════════════════════════════
+function update() {
+  const cfg = DIFFICULTIES[selectedDiff];
+  const W = canvas.width, H = canvas.height;
+  const PLAYER_X = W * 0.22;
+
+  // Move world
+  worldX += cfg.speed;
+
+  // Get current column under player
+  const col = getColAtX(worldX + PLAYER_X);
+
+  // === БЕЗОПАСНАЯ ЗОНА ===
+  // В safe zone физика работает (можно управлять), но смерть от стен отключена
+  const inSafeZone = col ? col.safe : false;
+
+  // Wave physics — работает всегда
+  const GRAVITY = isHeld ? -0.45 : 0.45;
+  velY += GRAVITY;
+  velY *= 0.92;
+  playerY += velY;
+
+  // В safe zone плавно подтягиваем к центру если игрок не нажимает
+  if (inSafeZone && !isHeld) {
+    playerY += (H / 2 - playerY) * 0.05;
+  }
+
+  // Trail
+  trail.unshift({ x: PLAYER_X, y: playerY });
+  if (trail.length > 18) trail.pop();
+
+  // Туннель из столбца
+  const topLimit = (col ? col.topY : cfg.ceilFloorH) + WAVE_SIZE;
+  const botLimit = (col ? col.botY : H - cfg.ceilFloorH) - WAVE_SIZE;
+
+  // Смерть от стен — только вне safe zone
+  if (!inSafeZone) {
+    if (playerY < topLimit || playerY > botLimit) {
+      die(); return;
+    }
+
+    // Проверка шипов по соседним столбцам вокруг игрока
+    const checkRadius = WAVE_SIZE + cfg.spikeSize * 0.6;
+    for (let dx = -checkRadius; dx <= checkRadius; dx += 6) {
+      const c = getColAtX(worldX + PLAYER_X + dx);
+      if (!c) continue;
+      if (c.spikeTop) {
+        const spY = c.topY + cfg.spikeSize * 0.5;
+        const spX = c.x - worldX;
+        if (Math.hypot(spX - PLAYER_X, spY - playerY) < checkRadius) { die(); return; }
+      }
+      if (c.spikeBot) {
+        const spY = c.botY - cfg.spikeSize * 0.5;
+        const spX = c.x - worldX;
+        if (Math.hypot(spX - PLAYER_X, spY - playerY) < checkRadius) { die(); return; }
+      }
+    }
+  }
+
+  // Progress
+  const pct = Math.min(100, Math.round(worldX / LEVEL_LENGTH * 100));
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('hudPercent').textContent = pct + '%';
+
+  const key = selectedDiff;
+  if (!bestPct[key] || pct > bestPct[key]) bestPct[key] = pct;
+
+  // Particles
+  if (Math.random() < 0.4) {
+    particles.push({
+      x: PLAYER_X + (Math.random() - 0.5) * 10,
+      y: playerY + (Math.random() - 0.5) * 10,
+      vx: (Math.random() - 0.9) * 3,
+      vy: (Math.random() - 0.5) * 2,
+      life: 1, size: Math.random() * 4 + 1, color: cfg.colorA,
+    });
+  }
+  particles = particles.filter(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vx *= 0.92; p.vy *= 0.92;
+    p.life -= 0.06;
+    return p.life > 0;
+  });
+
+  if (worldX >= LEVEL_LENGTH) win();
+}
+
+function getColAtX(wx) {
+  if (!segments || segments.length === 0) return null;
+  const STEP = 12;
+  const idx = Math.max(0, Math.min(segments.length - 1, Math.floor(wx / STEP)));
+  return segments[idx];
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════
+function render() {
+  const cfg = DIFFICULTIES[selectedDiff];
+  const W = canvas.width, H = canvas.height;
+  const PLAYER_X = W * 0.22;
+
+  // Background
+  ctx.fillStyle = '#050510';
+  ctx.fillRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(0,245,255,0.04)';
+  ctx.lineWidth = 1;
+  const gridSize = 40;
+  const gridOff = worldX % gridSize;
+  for (let x = -gridOff; x < W; x += gridSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+
+  // Draw level - column based, draw top/bottom walls as continuous filled polygons
+  // We iterate visible columns and fill walls per-column
+  const STEP = 12;
+  const startIdx = Math.max(0, Math.floor(worldX / STEP) - 2);
+  const endIdx   = Math.min(segments.length - 1, Math.floor((worldX + W + STEP) / STEP) + 2);
+
+  // Draw top wall, bottom wall, and spikes in one pass
+  ctx.shadowBlur = 0;
+  for (let i = startIdx; i <= endIdx; i++) {
+    const col = segments[i];
+    if (!col) continue;
+    const cx = col.x - worldX;
+
+    // Top wall fill
+    const topGrad = ctx.createLinearGradient(0, 0, 0, col.topY);
+    topGrad.addColorStop(0, cfg.colorA + '44');
+    topGrad.addColorStop(1, cfg.colorA + 'aa');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(cx, 0, STEP + 1, col.topY);
+
+    // Top wall glow edge
+    ctx.fillStyle = cfg.colorA;
+    ctx.shadowColor = cfg.colorA;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(cx, col.topY - 2, STEP + 1, 2);
+    ctx.shadowBlur = 0;
+
+    // Bottom wall fill
+    const botGrad = ctx.createLinearGradient(0, col.botY, 0, H);
+    botGrad.addColorStop(0, cfg.colorB + 'aa');
+    botGrad.addColorStop(1, cfg.colorB + '44');
+    ctx.fillStyle = botGrad;
+    ctx.fillRect(cx, col.botY, STEP + 1, H - col.botY);
+
+    // Bottom wall glow edge
+    ctx.fillStyle = cfg.colorB;
+    ctx.shadowColor = cfg.colorB;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(cx, col.botY, STEP + 1, 2);
+    ctx.shadowBlur = 0;
+
+    // Spike top
+    if (col.spikeTop) {
+      const sz = cfg.spikeSize;
+      ctx.fillStyle = cfg.colorA;
+      ctx.shadowColor = cfg.colorA;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(cx,           col.topY);
+      ctx.lineTo(cx + STEP/2,  col.topY + sz);
+      ctx.lineTo(cx + STEP,    col.topY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Spike bottom
+    if (col.spikeBot) {
+      const sz = cfg.spikeSize;
+      ctx.fillStyle = cfg.colorB;
+      ctx.shadowColor = cfg.colorB;
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+      ctx.moveTo(cx,           col.botY);
+      ctx.lineTo(cx + STEP/2,  col.botY - sz);
+      ctx.lineTo(cx + STEP,    col.botY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // Particles
+  for (const p of particles) {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur = 6;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
+  // Trail
+  for (let i = trail.length - 1; i >= 0; i--) {
+    const t = trail[i];
+    const alpha = (1 - i / trail.length) * 0.35;
+    const size  = WAVE_SIZE * (1 - i / trail.length) * 0.6;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = cfg.colorA;
+    ctx.shadowColor = cfg.colorA;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
+  // Safe zone hint
+  const curCol = getColAtX(worldX + PLAYER_X);
+  const inSafe = curCol && curCol.safe;
+  if (inSafe) {
+    ctx.save();
+    ctx.globalAlpha = 0.5 + 0.5 * Math.sin(Date.now() / 400);
+    ctx.fillStyle = cfg.colorA;
+    ctx.font = `bold ${Math.round(W * 0.022 + 8)}px Orbitron, monospace`;
+    ctx.textAlign = 'center';
+    ctx.shadowColor = cfg.colorA;
+    ctx.shadowBlur = 15;
+    ctx.fillText('ЗАЖМИ — ВВЕРХ  |  ОТПУСТИ — ВНИЗ', W / 2, H * 0.82);
+    ctx.restore();
+  }
+
+  // Player
+  const glow = cfg.colorA;
+  ctx.save();
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = 20;
+
+  if (skinImgLoaded && skinImg) {
+    // Photo skin with clip
+    const r = WAVE_SIZE;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(PLAYER_X, playerY, r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(skinImg, PLAYER_X - r, playerY - r, r * 2, r * 2);
+    ctx.restore();
+    // Neon ring
+    ctx.strokeStyle = glow;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(PLAYER_X, playerY, WAVE_SIZE, 0, Math.PI * 2);
+    ctx.stroke();
+  } else {
+    // Fallback diamond
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.moveTo(PLAYER_X, playerY - WAVE_SIZE);
+    ctx.lineTo(PLAYER_X + WAVE_SIZE, playerY);
+    ctx.lineTo(PLAYER_X, playerY + WAVE_SIZE);
+    ctx.lineTo(PLAYER_X - WAVE_SIZE, playerY);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Wave direction indicator
+  ctx.strokeStyle = isHeld ? '#fff' : 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = 0;
+  const arrowDir = isHeld ? -1 : 1;
+  ctx.beginPath();
+  ctx.moveTo(PLAYER_X + 8, playerY + arrowDir * 6);
+  ctx.lineTo(PLAYER_X + 8, playerY - arrowDir * 6);
+  ctx.moveTo(PLAYER_X + 5, playerY - arrowDir * 3);
+  ctx.lineTo(PLAYER_X + 8, playerY - arrowDir * 6);
+  ctx.lineTo(PLAYER_X + 11, playerY - arrowDir * 3);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// ════════════════════════════════════════════════════════
+//  DEATH / WIN
+// ════════════════════════════════════════════════════════
+function die() {
+  gameState = 'dead';
+  cancelAnimationFrame(animId);
+  const pct = Math.min(100, Math.round(worldX / LEVEL_LENGTH * 100));
+  const key = selectedDiff;
+  const best = bestPct[key] || pct;
+  document.getElementById('deathPercent').textContent = pct + '%';
+  document.getElementById('deathAttempt').textContent = attempt;
+  document.getElementById('deathBest').textContent    = best + '%';
+  document.getElementById('gameHud').style.display = 'none';
+  showScreen('deathScreen');
+}
+
+function win() {
+  gameState = 'win';
+  cancelAnimationFrame(animId);
+  bestPct[selectedDiff] = 100;
+  const diffNames = { easy:'ЛЁГКО', hard:'СЛОЖНО', insane:'НЕВОЗМОЖНО' };
+  document.getElementById('winDiff').textContent    = diffNames[selectedDiff];
+  document.getElementById('winAttempt').textContent = attempt;
+  document.getElementById('winBest').textContent    = '100%';
+  document.getElementById('gameHud').style.display = 'none';
+  showScreen('winScreen');
+}
+
+// ════════════════════════════════════════════════════════
+//  INPUT
+// ════════════════════════════════════════════════════════
+function onHold(e) {
+  if (gameState !== 'playing') return;
+  // Ignore if tapping pause button or HUD
+  if (e.target.closest('#pauseBtnHud')) return;
+  isHeld = true;
+}
+function onRelease(e) {
+  isHeld = false;
+}
+
+document.addEventListener('pointerdown', onHold);
+document.addEventListener('pointerup',   onRelease);
+document.addEventListener('pointercancel', onRelease);
+
+document.addEventListener('keydown', (e) => {
+  if ((e.code === 'Space' || e.code === 'ArrowUp') && gameState === 'playing') {
+    e.preventDefault(); isHeld = true;
+  }
+  if (e.code === 'Escape' && gameState === 'playing') pauseGame();
+});
+document.addEventListener('keyup', (e) => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') isHeld = false;
+});
+
+// ════════════════════════════════════════════════════════
+//  FULLSCREEN
+// ════════════════════════════════════════════════════════
+function toggleFullscreen() {
+  const el = document.documentElement;
+  const fsBtn = document.getElementById('fsBtn');
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
+    if (req) req.call(el).catch(() => {});
+    fsBtn.textContent = '✕';
+    fsBtn.title = 'Выйти из полного экрана';
+  } else {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen;
+    if (ex) ex.call(document).catch(() => {});
+    fsBtn.textContent = '⛶';
+    fsBtn.title = 'Полный экран';
+  }
+}
+
+// Авто-полноэкранный при первом касании на мобильных
+let fsAutoTried = false;
+document.addEventListener('pointerdown', () => {
+  if (fsAutoTried) return;
+  fsAutoTried = true;
+  const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (isMobile && !document.fullscreenElement && !document.webkitFullscreenElement) {
+    const el = document.documentElement;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el).catch(() => {});
+  }
+}, { once: false });
+
+document.addEventListener('fullscreenchange', () => {
+  const fsBtn = document.getElementById('fsBtn');
+  fsBtn.textContent = document.fullscreenElement ? '✕' : '⛶';
+});
+document.addEventListener('webkitfullscreenchange', () => {
+  const fsBtn = document.getElementById('fsBtn');
+  fsBtn.textContent = document.webkitFullscreenElement ? '✕' : '⛶';
+});
+
+window.addEventListener('resize', () => { resizeCanvas(); });
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => { resizeCanvas(); }, 200);
+});
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+buildSkinGrid();
+loadSkinImage(0);
+</script>
+</body>
+</html>
