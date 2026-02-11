@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поймай фото! 🎯</title>
+    <title>Поймай Артура! 🎯</title>
     <style>
         * {
             margin: 0;
@@ -12,7 +12,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
             min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
@@ -51,7 +51,7 @@
         .score-value {
             font-size: 2rem;
             font-weight: 900;
-            color: #667eea;
+            color: #4b61c4;
             text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
         }
 
@@ -74,7 +74,7 @@
 
         .running-photo:hover {
             transform: scale(1.1);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+            box-shadow: 0 8px 25px rgba(75, 97, 196, 0.6);
         }
 
         .running-photo.clicked {
@@ -138,7 +138,7 @@
             font-size: 3rem;
             color: white;
             text-align: center;
-            text-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+            text-shadow: 0 0 20px rgba(75, 97, 196, 0.8);
         }
 
         .start-screen p {
@@ -157,7 +157,7 @@
         }
 
         .start-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4b61c4 0%, #00c3ff 100%);
             color: white;
             border: none;
             padding: 20px 60px;
@@ -165,7 +165,7 @@
             font-weight: 700;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 10px 30px rgba(75, 97, 196, 0.5);
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -173,7 +173,7 @@
 
         .start-btn:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+            box-shadow: 0 15px 40px rgba(75, 97, 196, 0.7);
         }
 
         .start-btn:active {
@@ -283,11 +283,11 @@
 <body>
     <!-- Стартовый экран -->
     <div class="start-screen" id="startScreen">
-        <h1>🎯 ПОЙМАЙ ВСЕ ФОТО!</h1>
+        <h1>🎯 ПОЙМАЙ ВСЕХ АРТУРОВ!</h1>
         <p>
-            Фотографии будут бегать по экрану!<br>
+            Артуры будут бегать по экрану!<br>
             Кликай по ним, чтобы поймать!<br>
-            <strong>+1 очко за каждое фото</strong>
+            <strong>+1 очко за каждого Артура</strong>
         </p>
         <div class="high-score-display">
             🏆 Личный рекорд: <span id="highScoreDisplay">0</span>
