@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поймай фото! 🎯</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* HUD с счётом */
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 40px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #667eea;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .record-badge {
+            color: #f5576c;
+        }
+
+        /* Бегающие фотки */
+        .running-photo {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            border: 3px solid white;
+            object-fit: cover;
+        }
+
+        .running-photo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .running-photo.clicked {
+            animation: photo-catch 0.5s ease forwards;
+        }
+
+        @keyframes photo-catch {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5) rotate(180deg);
+            }
+            100% {
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Эффект +1 при клике */
+        .score-popup {
+            position: fixed;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+            animation: score-rise 1s ease forwards;
+            z-index: 999;
+        }
+
+        @keyframes score-rise {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* Стартовый экран */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            gap: 30px;
+        }
+
+        .start-screen h1 {
+            font-size: 3rem;
+            color: white;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(102, 126, 234, 0.8);
+        }
+
+        .start-screen p {
+            font-size: 1.2rem;
+            color: #ccc;
+            text-align: center;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .high-score-display {
+            font-size: 1.5rem;
+            color: #f5576c;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(245, 87, 108, 0.8);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.7);
+        }
+
+        .start-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            padding: 15px 40px;
+            font-size: 1.2rem;
+        }
+
+        /* Экран паузы */
+        .pause-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+            gap: 20px;
+        }
+
+        .pause-screen h2 {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        /* Кнопка паузы */
+        .pause-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .pause-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Новый рекорд */
+        .new-record {
+            animation: pulse-record 0.5s ease;
+        }
+
+        @keyframes pulse-record {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #f5576c; }
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .hud {
+                padding: 10px 20px;
+                gap: 20px;
+                top: 10px;
+            }
+
+            .score-value {
+                font-size: 1.5rem;
+            }
+
+            .score-label {
+                font-size: 0.7rem;
+            }
+
+            .running-photo {
+                width: 60px;
+                height: 60px;
+            }
+
+            .start-screen h1 {
+                font-size: 2rem;
+                padding: 0 20px;
+            }
+
+            .start-screen p {
+                font-size: 1rem;
+                padding: 0 20px;
+            }
+
+            .start-btn {
+                padding: 15px 40px;
+                font-size: 1.2rem;
+            }
+
+            .high-score-display {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Стартовый экран -->
+    <div class="start-screen" id="startScreen">
+        <h1>🎯 ПОЙМАЙ ВСЕ ФОТО!</h1>
+        <p>
+            Фотографии будут бегать по экрану!<br>
+            Кликай по ним, чтобы поймать!<br>
+            <strong>+1 очко за каждое фото</strong>
+        </p>
+        <div class="high-score-display">
+            🏆 Личный рекорд: <span id="highScoreDisplay">0</span>
+        </div>
+        <button class="start-btn" onclick="startGame()">НАЧАТЬ ИГРУ</button>
+        <button class="start-btn back-btn" onclick="window.location.href='index.html'">← Назад к фото</button>
+    </div>
+
+    <!-- Пауза -->
+    <div class="pause-screen" id="pauseScreen">
+        <h2>⏸️ ПАУЗА</h2>
+        <button class="start-btn" onclick="togglePause()">ПРОДОЛЖИТЬ</button>
+        <button class="start-btn" onclick="restartGame()">ЗАНОВО</button>
+        <button class="start-btn back-btn" onclick="window.location.href='index.html'">← Выход</button>
+    </div>
+
+    <!-- HUD -->
+    <div class="hud" style="display: none;" id="hud">
+        <div class="score-item">
+            <div class="score-label">Счёт</div>
+            <div class="score-value" id="score">0</div>
+        </div>
+        <div class="score-item">
+            <div class="score-label">Рекорд</div>
+            <div class="score-value record-badge" id="record">0</div>
+        </div>
+        <div class="score-item">
+            <div class="score-label">Время</div>
+            <div class="score-value" id="timer">0:00</div>
+        </div>
+    </div>
+
+    <!-- Кнопка паузы -->
+    <button class="pause-btn" id="pauseBtn" style="display: none;" onclick="togglePause()">⏸️</button>
+
+    <script>
+        // ========================================
+        // НАСТРОЙКА ФОТОГРАФИЙ
+        // ========================================
+        // ВАЖНО: Положите ваши фотографии в папку game-photos
+        // Назовите их: photo1.jpg, photo2.jpg, photo3.jpg и т.д.
+        
+        const PHOTO_FOLDER = 'game-photos/';
+        const TOTAL_PHOTOS = 10; // Укажите количество ваших фото
+        
+        const photos = Array.from({ length: TOTAL_PHOTOS }, (_, i) => 
+            `${PHOTO_FOLDER}photo${i + 1}.jpg`
+        );
+
+        // Или укажите вручную:
+        /*
+        const photos = [
+            'game-photos/photo1.jpg',
+            'game-photos/photo2.jpg',
+            'game-photos/photo3.jpg',
+        ];
+        */
+
+        // ========================================
+        // ИГРОВЫЕ ПЕРЕМЕННЫЕ
+        // ========================================
+        let score = 0;
+        let highScore = 0;
+        let gameTime = 0;
+        let gameRunning = false;
+        let isPaused = false;
+        let runningPhotos = [];
+        let gameInterval;
+        let timerInterval;
+        let spawnInterval;
+
+        const scoreElement = document.getElementById('score');
+        const recordElement = document.getElementById('record');
+        const timerElement = document.getElementById('timer');
+        const hud = document.getElementById('hud');
+        const startScreen = document.getElementById('startScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const highScoreDisplay = document.getElementById('highScoreDisplay');
+
+        // Настройки игры
+        const PHOTO_SPEED = 2; // Скорость движения фоток
+        const SPAWN_INTERVAL = 2000; // Интервал появления новых фоток
+        const MAX_PHOTOS = 8; // Максимум фоток на экране
+
+        // Загружаем рекорд из localStorage
+        function loadHighScore() {
+            const saved = localStorage.getItem('photoGameHighScore');
+            highScore = saved ? parseInt(saved) : 0;
+            highScoreDisplay.textContent = highScore;
+            recordElement.textContent = highScore;
+        }
+
+        function saveHighScore() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('photoGameHighScore', highScore);
+                recordElement.textContent = highScore;
+                recordElement.classList.add('new-record');
+                setTimeout(() => {
+                    recordElement.classList.remove('new-record');
+                }, 500);
+            }
+        }
+
+        // ========================================
+        // ИГРОВАЯ ЛОГИКА
+        // ========================================
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            hud.style.display = 'flex';
+            pauseBtn.style.display = 'block';
+            
+            score = 0;
+            gameTime = 0;
+            gameRunning = true;
+            isPaused = false;
+            
+            updateHUD();
+            
+            // Запускаем таймер
+            timerInterval = setInterval(() => {
+                if (!isPaused) {
+                    gameTime++;
+                    updateTimer();
+                }
+            }, 1000);
+
+            // Запускаем появление фоток
+            spawnInterval = setInterval(() => {
+                if (!isPaused && runningPhotos.length < MAX_PHOTOS) {
+                    spawnPhoto();
+                }
+            }, SPAWN_INTERVAL);
+
+            // Запускаем игровой цикл
+            gameLoop();
+
+            // Спавним первые фотки сразу
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => spawnPhoto(), i * 500);
+            }
+        }
+
+        function spawnPhoto() {
+            const photoUrl = photos[Math.floor(Math.random() * photos.length)];
+            const photo = document.createElement('img');
+            photo.className = 'running-photo';
+            photo.src = photoUrl;
+            
+            // Случайная позиция на экране
+            const startX = Math.random() * (window.innerWidth - 80);
+            const startY = Math.random() * (window.innerHeight - 80);
+            
+            photo.style.left = startX + 'px';
+            photo.style.top = startY + 'px';
+            
+            // Случайное направление движения
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = {
+                x: Math.cos(angle) * PHOTO_SPEED,
+                y: Math.sin(angle) * PHOTO_SPEED
+            };
+            
+            const photoData = {
+                element: photo,
+                x: startX,
+                y: startY,
+                vx: velocity.x,
+                vy: velocity.y
+            };
+            
+            // Клик по фотке
+            photo.addEventListener('click', () => catchPhoto(photoData));
+            
+            document.body.appendChild(photo);
+            runningPhotos.push(photoData);
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            if (!isPaused) {
+                runningPhotos.forEach(photoData => {
+                    // Обновляем позицию
+                    photoData.x += photoData.vx;
+                    photoData.y += photoData.vy;
+                    
+                    // Отскок от границ
+                    if (photoData.x <= 0 || photoData.x >= window.innerWidth - 80) {
+                        photoData.vx *= -1;
+                        photoData.x = Math.max(0, Math.min(window.innerWidth - 80, photoData.x));
+                    }
+                    if (photoData.y <= 0 || photoData.y >= window.innerHeight - 80) {
+                        photoData.vy *= -1;
+                        photoData.y = Math.max(0, Math.min(window.innerHeight - 80, photoData.y));
+                    }
+                    
+                    // Применяем позицию
+                    photoData.element.style.left = photoData.x + 'px';
+                    photoData.element.style.top = photoData.y + 'px';
+                });
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function catchPhoto(photoData) {
+            if (isPaused) return;
+            
+            // +1 очко за каждое фото
+            score += 1;
+            
+            // Проверяем новый рекорд
+            saveHighScore();
+            
+            // Показываем +1
+            showScorePopup(photoData.x + 40, photoData.y + 40, '+1');
+            
+            // Анимация исчезновения
+            photoData.element.classList.add('clicked');
+            
+            setTimeout(() => {
+                photoData.element.remove();
+                runningPhotos = runningPhotos.filter(p => p !== photoData);
+            }, 500);
+            
+            updateHUD();
+        }
+
+        function showScorePopup(x, y, text) {
+            const popup = document.createElement('div');
+            popup.className = 'score-popup';
+            popup.textContent = text;
+            popup.style.left = x + 'px';
+            popup.style.top = y + 'px';
+            
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                popup.remove();
+            }, 1000);
+        }
+
+        function updateHUD() {
+            scoreElement.textContent = score;
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(gameTime / 60);
+            const seconds = gameTime % 60;
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            
+            if (isPaused) {
+                pauseScreen.style.display = 'flex';
+                pauseBtn.textContent = '▶️';
+            } else {
+                pauseScreen.style.display = 'none';
+                pauseBtn.textContent = '⏸️';
+            }
+        }
+
+        function restartGame() {
+            // Очищаем всё
+            runningPhotos.forEach(p => p.element.remove());
+            runningPhotos = [];
+            clearInterval(timerInterval);
+            clearInterval(spawnInterval);
+            gameRunning = false;
+            
+            // Перезапускаем
+            pauseScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Пауза на ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && gameRunning) {
+                togglePause();
+            }
+        });
+
+        // Загружаем рекорд при загрузке страницы
+        window.addEventListener('load', loadHighScore);
+    </script>
+</body>
+</html>
